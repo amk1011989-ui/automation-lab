@@ -1,0 +1,16 @@
+---
+- name: Varmuuskopioi reitittimien konfiguraatiot
+  hosts: routers
+  gather_facts: false
+
+  tasks:
+    - name: Hae FRRouting-konfiguraatio
+      ansible.builtin.raw: vtysh -c "show running-config"
+      register: config
+      changed_when: false
+
+    - name: Tallenna konfiguraatio tiedostoon
+      ansible.builtin.copy:
+        content: "{{ config.stdout }}"
+        dest: "/root/automation-lab/backups/{{ inventory_hostname }}.conf"
+      delegate_to: localhost

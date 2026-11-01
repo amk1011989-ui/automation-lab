@@ -1,0 +1,33 @@
+---
+- name: Kerää reitittimien tiedot
+  hosts: routers
+  gather_facts: false
+
+  tasks:
+    - name: Kerää hostname
+      ansible.builtin.raw: hostname
+      register: hostname_result
+      changed_when: false
+
+    - name: Kerää IP-osoitteet ja interfacet
+      ansible.builtin.raw: ip -br addr
+      register: interfaces_result
+      changed_when: false
+
+    - name: Kerää käyttöjärjestelmän tiedot
+      ansible.builtin.raw: cat /etc/os-release
+      register: os_result
+      changed_when: false
+
+    - name: Kerää uptime
+      ansible.builtin.raw: uptime
+      register: uptime_result
+      changed_when: false
+
+    - name: Näytä kerätyt tiedot
+      ansible.builtin.debug:
+        msg:
+          - "{{ hostname_result.stdout }}"
+          - "{{ interfaces_result.stdout }}"
+          - "{{ os_result.stdout }}"
+          - "{{ uptime_result.stdout }}"
