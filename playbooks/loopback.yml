@@ -1,0 +1,18 @@
+---
+- name: Lisää loopback r3-reitittimelle
+  hosts: r3-branch
+  gather_facts: false
+
+  tasks:
+    - name: Tarkista loopback
+      ansible.builtin.raw: ip addr show lo10
+      register: loopback
+      failed_when: false
+      changed_when: false
+
+    - name: Luo loopback
+      ansible.builtin.raw: |
+        ip link add lo10 type dummy
+        ip addr add 192.0.2.3/32 dev lo10
+        ip link set lo10 up
+      when: loopback.rc != 0

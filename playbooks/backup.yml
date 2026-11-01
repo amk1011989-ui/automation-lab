@@ -9,8 +9,17 @@
       register: config
       changed_when: false
 
-    - name: Tallenna konfiguraatio tiedostoon
+    - name: Hae IP-osoitteet
+      ansible.builtin.raw: ip -4 -o addr show
+      register: ip_config
+      changed_when: false
+
+    - name: Tallenna varmuuskopio
       ansible.builtin.copy:
-        content: "{{ config.stdout }}"
+        content: |
+          {{ config.stdout }}
+
+          ! Linux IP-osoitteet
+          {{ ip_config.stdout }}
         dest: "/root/automation-lab/backups/{{ inventory_hostname }}.conf"
       delegate_to: localhost

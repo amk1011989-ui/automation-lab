@@ -1,0 +1,23 @@
+---
+- name: Tarkista reitittimien tila
+  hosts: routers
+  gather_facts: false
+
+  tasks:
+    - name: Tarkista SSH-yhteys
+      ansible.builtin.raw: hostname
+      changed_when: false
+
+    - name: Tarkista r3 loopback
+      ansible.builtin.raw: ip -4 addr show lo10
+      register: loopback
+      changed_when: false
+      when: inventory_hostname == "r3-branch"
+
+    - name: Tarkista oikea IP-osoite
+      ansible.builtin.assert:
+        that:
+          - "'inet 192.0.2.3/32' in loopback.stdout"
+        fail_msg: "Loopbackin IP-osoite on väärä!"
+        success_msg: "Loopback ja IP-osoite ovat kunnossa."
+      when: inventory_hostname == "r3-branch"
