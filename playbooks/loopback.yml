@@ -1,18 +1,27 @@
 ---
-- name: Lisää loopback r3-reitittimelle
+- name: Lisää tai korjaa loopback
   hosts: r3-branch
   gather_facts: false
 
   tasks:
     - name: Tarkista loopback
-      ansible.builtin.raw: ip addr show lo10
+      ansible.builtin.raw: ip link show lo10
       register: loopback
       failed_when: false
       changed_when: false
 
-    - name: Luo loopback
+    - name: Luo loopback tarvittaessa
+      ansible.builtin.raw: ip link add lo10 type dummy
+      when: loopback.rc != 0
+
+    - name: Tarkista IP-osoite
+      ansible.builtin.raw: ip -4 -o addr show dev lo10
+      register: ip_check
+      changed_when: false
+
+    - name: Korjaa IP-osoite tarvittaessa
       ansible.builtin.raw: |
-        ip link add lo10 type dummy
+        ip -4 addr flush dev lo10
         ip addr add 192.0.2.3/32 dev lo10
         ip link set lo10 up
-      when: loopback.rc != 0
+      when: "'inet 192.0.2.3/32 ' not in ip_check.stdout or '192.0.2.99/32' in ip_check.stdout"
